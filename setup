@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+sudo gem install daemons
+gem install daemons
+brew install terminal-notifier

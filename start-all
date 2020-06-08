@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+path="$( cd "$( dirname "$0" )" && pwd )"
+
+
+# FILTERS to polling
+filter_ids=(
+	500293795
+	500293837
+)
+
+logfiles=()
+
+for fid in "${filter_ids[@]}"; do
+	$path/jira.sh start $fid
+	logfiles+=("$path/jira-$fid.log")
+done
+
+tail -F ${logfiles[@]}

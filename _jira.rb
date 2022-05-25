@@ -29,7 +29,7 @@ APP_VERSION = "1.2.0"
 module Defaults
 	public
 	BROWSER = "Safari"
-	MAX_RESULT_COUNT = 20
+	MAX_RESULT_COUNT = 100
 	POLLING_PERIOD = 300 # 5 mins
 
 	module Backup

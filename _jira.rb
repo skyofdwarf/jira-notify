@@ -13,6 +13,8 @@ require "#{__dir__}/osx_notification"
 =begin
 CHANGELOG
 
+* 1.2.1
+	- changelog.histories `RemoteIssueLink` 필드 아이템은 알림 제외(문서 편집시 마다 알림폭탄이 쏟아짐)
 * 1.2.0
 	- 라인 메시지의 변경 사항 표시 수정
 * 1.1.0
@@ -198,8 +200,10 @@ def get_issue_status(key)
 	changes = histories.map { |history|
 		history_created = history[:created]
 		name = history[:author][:displayName]
-		changed = history[:items].map { |item| { what: item[:field], from: item[:fromString], to: item[:toString] } }
-		
+		changed = history[:items]
+			.map { |item| { what: item[:field], from: item[:fromString], to: item[:toString] } }
+			.select { |item| item[:what].downcase != 'RemoteIssueLink'.downcase }
+
 		{ created: history_created, who: name, changed: changed }
 	}
 
@@ -338,6 +342,8 @@ def find_changes_from_issues(previous_issues, current_issues)
 			#mock_get_issue_status(key)
 			get_issue_status(key)
 		}
+		.select { |issue| !issue[:changes].empty? }
+		
 
 	{ new_issues: maybe_new_issues, updated_issues: disappeared_updated_issues + updated_issues }
 end

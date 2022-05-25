@@ -15,6 +15,7 @@ CHANGELOG
 
 * 1.2.1
 	- changelog.histories `RemoteIssueLink` 필드 아이템은 알림 제외(문서 편집시 마다 알림폭탄이 쏟아짐)
+      맙소사 노티할 변경사항을 ine_notification에서 추출하고 있었네. 무시할 아이템들과 노티할 변경사항 추출까지 이 곳에서 해야 할드읏 하지만 난 ~괜~귀찮아
 * 1.2.0
 	- 라인 메시지의 변경 사항 표시 수정
 * 1.1.0
@@ -204,8 +205,13 @@ def get_issue_status(key)
 			.map { |item| { what: item[:field], from: item[:fromString], to: item[:toString] } }
 			.select { |item| item[:what].downcase != 'RemoteIssueLink'.downcase }
 
-		{ created: history_created, who: name, changed: changed }
+		if changed.empty?
+			nil
+		else 
+			{ created: history_created, who: name, changed: changed }
+		end
 	}
+	.compact
 
 	{ key: key, summary: summary, updated: updated, created: created, status: status, comments: comments, changes: changes, not_found: false } 
 end
@@ -342,8 +348,11 @@ def find_changes_from_issues(previous_issues, current_issues)
 			#mock_get_issue_status(key)
 			get_issue_status(key)
 		}
-		.select { |issue| !issue[:changes].empty? }
-		
+		.select { |issue|
+			issue[:changes].select { |item|
+				!item[:changed].empty?
+			}
+		}
 
 	{ new_issues: maybe_new_issues, updated_issues: disappeared_updated_issues + updated_issues }
 end

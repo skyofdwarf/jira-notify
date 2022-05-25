@@ -101,7 +101,8 @@ class LineNotification
     return true if updated_issues.empty?
 
     updated_messages = messages_from_updated_issues(updated_issues, previous_issues)
-    total_message_count = updated_messages.count
+
+    return true if updated_messages.empty?
 
     results = []
 
@@ -152,7 +153,9 @@ class LineNotification
 					
 				new_comments = new_comments_of_updated_issue(issue, previous_issue)
           .map {|comment| message_from_comment(comment) }
-        
+
+        next nil if new_comments.empty? and new_changes.empty?
+
         message = %(*#{key}* _(#{status})_
 #{URL.issue(key)}
 #{summary})
@@ -172,6 +175,7 @@ class LineNotification
         message
       end
     }
+    .compact
   end
 
   def self.new_changes_of_updated_issue(updated_issue, previous_issue)

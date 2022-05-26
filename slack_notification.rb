@@ -102,7 +102,7 @@ class SlackNotification
       return true
     end
 
-    header = "> :ladybug: *신규? #{new_issues.count}, 갱신 #{updated_issues.count}*"
+    header = ":ladybug: *신규? #{new_issues.count}, 갱신 #{updated_issues.count}*"
     blocks = [ section_for_text(header) ]
 
     if not new_issues.empty?
@@ -136,8 +136,8 @@ class SlackNotification
       summary = issue[:summary]
       status = issue[:status]
       
-%(> *신규 이슈 (#{index+1}/#{new_issues.count}) *<#{URL.issue(key)}|#{key}>* _(#{status})_
-> #{summary})
+%(*신규 이슈 (#{index+1}/#{new_issues.count}) <#{URL.issue(key)}|#{key}>* _(#{status})_
+#{summary})
     }
   end
 
@@ -148,7 +148,7 @@ class SlackNotification
 
       if not_found
         error_messages = issue[:error_messages].join(',')
-%(> *갱신 이슈 (#{index+1}/#{updated_issues.count}) <#{URL.issue(key)}|#{key}>*
+%(*갱신 이슈 (#{index+1}/#{updated_issues.count}) <#{URL.issue(key)}|#{key}>*
 > 이슈 정보를 찾을 수 없습니다 (#{error_messages}))
       else
         summary = issue[:summary]
@@ -164,18 +164,18 @@ class SlackNotification
 
         next nil if new_comments.empty? and new_changes.empty?
 
-        message = %(> *갱신 이슈(#{index+1}/#{updated_issues.count}) <#{URL.issue(key)}|#{key}>* _(#{status})_
-> #{summary})
+        message = %(*갱신 이슈(#{index+1}/#{updated_issues.count}) <#{URL.issue(key)}|#{key}>* _(#{status})_
+#{summary})
 
         if !new_changes.empty?
           message += %(
-*변경 사항*
+> *변경 사항*
 #{new_changes.join("\n")})
         end
 
         if !new_comments.empty?
           message += %(
-*코멘트*
+> *코멘트*
 #{new_comments.join("\n")})
         end
 
@@ -238,7 +238,7 @@ class SlackNotification
       
       action = added ? "추가": (deleted ? "삭제": "변경")
 
-      message = %(- _#{who}_ 님이 _#{what}_ 를 _#{action}_ : )
+      message = %(> - _#{who}_ 님이 _#{what}_ 를 _#{action}_ : )
       
       if what.downcase.start_with?("description")
         message += "_JIRA 에서 확인 해 주세요_"
@@ -258,6 +258,6 @@ class SlackNotification
 		who = comment[:who]
 		comment = comment[:comment]
 
-		%(_#{who}_ 님이 작성: ```#{comment}```)
+		%(> - _#{who}_ 님이 작성: ```#{comment}```)
 	end
 end

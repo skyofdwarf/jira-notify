@@ -229,14 +229,14 @@ def notify_launch(filter_id)
 		unless LineNotification.notify_launch(filter_id, APP_VERSION)
 			OSXNotification.notify_launch(filter_id, APP_VERSION)
 		end
-	end
+	end	
 end
 
 def notify_termination()
 	filter_id = Config.instance.filter_id
 
 	unless SlackNotification.notify_termination(filter_id, APP_VERSION)
-			unless LineNotification.notify_termination(filter_id, APP_VERSION)
+		unless LineNotification.notify_termination(filter_id, APP_VERSION)
 			OSXNotification.notify_termination(filter_id, APP_VERSION)
 		end
 	end

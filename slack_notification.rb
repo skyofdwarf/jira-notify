@@ -79,14 +79,6 @@ class SlackNotification
     res.code == "200"
   end
 
-  def self.notify_issues_old(previous_issues, new_issues, updated_issues, filter_id)
-    if new_issues.empty? && updated_issues.empty?
-      return true
-    end
-
-    notify_new_issues(new_issues, filter_id) && notify_updated_issues(previous_issues, updated_issues, filter_id)
-  end
-
   def self.section_for_text(text)
     {
       type: "section",
@@ -102,26 +94,33 @@ class SlackNotification
       return true
     end
 
-    header = ":ladybug: *신규? #{new_issues.count}, 갱신 #{updated_issues.count}*"
-    blocks = [ section_for_text(header) ]
+    blocks = []
 
     if not new_issues.empty?
-      messages_from_new_issues(new_issues).map { |message|
+      new_issue_messages = messages_from_new_issues(new_issues).map { |message|
         section_for_text(message)
-      }.each { |section|
+      }
+
+      new_issue_messages.each { |section|
         blocks << section
       }
     end
 
     if not updated_issues.empty?
-      messages_from_updated_issues(updated_issues, previous_issues).map { |message|
+      updated_issue_messages = messages_from_updated_issues(updated_issues, previous_issues).map { |message|
         section_for_text(message)
-      }.each { |section|
+      }
+
+      updated_issue_messages.each { |section|
         blocks << section
       }
     end
 
-    title = "이슈 알리아줌마:\n 신규?(#{new_issues.count}), 갱신(#{updated_issues.count})"
+
+    title = "쿵쾅! 신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}"
+    header = ":ladybug: *신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}*"
+    
+    blocks.prepend(section_for_text(header))
 
     json = JSON.generate({ text: title, blocks: blocks })
 
@@ -142,18 +141,13 @@ class SlackNotification
   end
 
   def self.messages_from_updated_issues(updated_issues, previous_issues)
-    updated_issues.each_with_index.map { |issue, index|
+    updates_to_be_notified = updated_issues.map { |issue|
       key = issue[:key]
       not_found = issue[:not_found]
 
       if not_found
-        error_messages = issue[:error_messages].join(',')
-%(*갱신 이슈 (#{index+1}/#{updated_issues.count}) <#{URL.issue(key)}|#{key}>*
-> 이슈 정보를 찾을 수 없습니다 (#{error_messages}))
+        { not_found: issue }
       else
-        summary = issue[:summary]
-        status = issue[:status]
-
         previous_issue = previous_issues.find {|prev_issue| prev_issue[:key] == key }
         
         new_changes = new_changes_of_updated_issue(issue, previous_issue)
@@ -162,9 +156,30 @@ class SlackNotification
         new_comments = new_comments_of_updated_issue(issue, previous_issue)
           .map {|comment| message_from_comment(comment) }
 
-        next nil if new_comments.empty? and new_changes.empty?
+        if new_comments.empty? and new_changes.empty?
+          nil
+        else
+          { issue: issue, comments: new_comments, changes: new_changes }
+        end
+      end
+    }
+    .compact
 
-        message = %(*갱신 이슈(#{index+1}/#{updated_issues.count}) <#{URL.issue(key)}|#{key}>* _(#{status})_
+    updates_to_be_notified.each_with_index.map { |update, index| # to be notified
+      if update.has_key?(:not_found)
+        error_messages = update[:not_found][:error_messages].join(',')
+%(*갱신 이슈 (#{index+1}/#{updates_to_be_notified.count}) <#{URL.issue(key)}|#{key}>*
+> 이슈 정보를 찾을 수 없습니다 (#{error_messages}))
+      else
+        issue = update[:issue]
+        new_comments = update[:comments]
+        new_changes = update[:changes]
+
+        summary = issue[:summary]
+        status = issue[:status]  
+        key = issue[:key]      
+
+        message = %(*갱신 이슈(#{index+1}/#{updates_to_be_notified.count}) <#{URL.issue(key)}|#{key}>* _(#{status})_
 #{summary})
 
         if !new_changes.empty?
@@ -182,7 +197,6 @@ class SlackNotification
         message
       end
     }
-    .compact
   end
 
   def self.new_changes_of_updated_issue(updated_issue, previous_issue)

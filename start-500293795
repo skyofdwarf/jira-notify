@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-path="$( cd "$( dirname "$0" )" && pwd )"
-
-# [*/I/*] 미완료 - 버그
-filter_id="500293795"
-polling_period=$1
-
-$path/jira.sh start $filter_id $polling_period

@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-path="$( cd "$( dirname "$0" )" && pwd )"
-
-# [*/*/T] 미완료
-filter_id="500293837"
-polling_period=$1
-
-$path/jira.sh start $filter_id $polling_period

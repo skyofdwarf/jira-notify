@@ -97,26 +97,25 @@ class SlackNotification
 
     blocks = []
 
-    if not new_issues.empty?
-      new_issue_messages = messages_from_new_issues(new_issues).map { |message|
-        section_for_text(message)
-      }
+    new_issue_messages = messages_from_new_issues(new_issues).map { |message|
+      section_for_text(message)
+    }
 
-      new_issue_messages.each { |section|
-        blocks << section
-      }
+    new_issue_messages.each { |section|
+      blocks << section
+    }
+
+    updated_issue_messages = messages_from_updated_issues(updated_issues, previous_issues).map { |message|
+      section_for_text(message)
+    }
+
+    updated_issue_messages.each { |section|
+      blocks << section
+    }
+
+    if new_issue_messages.empty? && updated_issue_messages.empty?
+      return true
     end
-
-    if not updated_issues.empty?
-      updated_issue_messages = messages_from_updated_issues(updated_issues, previous_issues).map { |message|
-        section_for_text(message)
-      }
-
-      updated_issue_messages.each { |section|
-        blocks << section
-      }
-    end
-
 
     title = "쿵쾅(WQ)! 신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}"
     header = ":ladybug: *신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}*"

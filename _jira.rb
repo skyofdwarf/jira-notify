@@ -9,10 +9,13 @@ require 'singleton'
 require 'base64'
 require "#{__dir__}/line_notification"
 require "#{__dir__}/osx_notification"
+require "#{__dir__}/slack_notification"
 
 =begin
 CHANGELOG
 
+* 1.2.2
+	- Slack Incoming Webhooks 추가
 * 1.2.1
 	- changelog.histories `RemoteIssueLink` 필드 아이템은 알림 제외(문서 편집시 마다 알림폭탄이 쏟아짐)
       맙소사 노티할 변경사항을 ine_notification에서 추출하고 있었네. 무시할 아이템들과 노티할 변경사항 추출까지 이 곳에서 해야 할드읏 하지만 난 ~괜~귀찮아
@@ -25,7 +28,7 @@ CHANGELOG
 	- 첫 정식 릴리즈
 =end
 
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.2.2"
 
 module Defaults
 	public
@@ -222,16 +225,20 @@ def mock_get_issue_status(key)
 end
 
 def notify_launch(filter_id)
-	unless LineNotification.notify_launch(filter_id, APP_VERSION)
-		OSXNotification.notify_launch(filter_id, APP_VERSION)
+	unless SlackNotification.notify_launch(filter_id, APP_VERSION)
+		unless LineNotification.notify_launch(filter_id, APP_VERSION)
+			OSXNotification.notify_launch(filter_id, APP_VERSION)
+		end
 	end
 end
 
 def notify_termination()
 	filter_id = Config.instance.filter_id
 
-	unless LineNotification.notify_termination(filter_id, APP_VERSION)
-		OSXNotification.notify_termination(filter_id, APP_VERSION)
+	unless SlackNotification.notify_termination(filter_id, APP_VERSION)
+			unless LineNotification.notify_termination(filter_id, APP_VERSION)
+			OSXNotification.notify_termination(filter_id, APP_VERSION)
+		end
 	end
 end
 
@@ -240,8 +247,10 @@ def notify_issues(previous_issues, new_issues, updated_issues, filter_id)
 		return
 	end
 
-	unless LineNotification.notify_issues(previous_issues, new_issues, updated_issues, filter_id)
-		OSXNotification.notify_issues(previous_issues, new_issues, updated_issues, filter_id)
+	unless SlackNotification.notify_issues(previous_issues, new_issues, updated_issues, filter_id)
+		unless LineNotification.notify_issues(previous_issues, new_issues, updated_issues, filter_id)
+			OSXNotification.notify_issues(previous_issues, new_issues, updated_issues, filter_id)
+		end
 	end
 end
 

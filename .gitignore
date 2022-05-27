@@ -2,3 +2,4 @@
 *.pid
 *.log
 *.filter
+slack_webhook.url

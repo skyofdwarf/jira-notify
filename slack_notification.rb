@@ -3,6 +3,7 @@ require 'net/http'
 require 'uri'
 require 'singleton'
 require 'JSON'
+require 'Time'
 
 # Slack Incoming Webhooks
 # curl -X POST -H 'Content-type: application/json' --data '#{JSON}' __WEBHOOK_URL__
@@ -117,7 +118,7 @@ class SlackNotification
     end
 
 
-    title = "쿵쾅! 신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}"
+    title = "쿵쾅(WQ)! 신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}"
     header = ":ladybug: *신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}*"
     
     blocks.prepend(section_for_text(header))
@@ -238,6 +239,9 @@ class SlackNotification
 	def self.message_from_change(change)
 		who = change[:who]
 		changed = change[:changed]
+    created = change[:created]
+
+    time = Time.parse(created).strftime("%m-%d %H:%M")
 
 		changed.map {|item|
 			what = item[:what]
@@ -252,7 +256,7 @@ class SlackNotification
       
       action = added ? "추가": (deleted ? "삭제": "변경")
 
-      message = %(> - _#{who}_ 님이 _#{what}_ 를 _#{action}_ : )
+      message = %(> - [#{time}] _#{who}_ 님이 _#{what}_ 를 _#{action}_: )
       
       if what.downcase.start_with?("description")
         message += "_JIRA 에서 확인 해 주세요_"
@@ -269,9 +273,12 @@ class SlackNotification
 	end
 
 	def self.message_from_comment(comment)
-		who = comment[:who]
-		comment = comment[:comment]
+    who = comment[:who]
+		message = comment[:comment]
+    updated = comment[:updated]
 
-		%(> - _#{who}_ 님이 작성: ```#{comment}```)
+    time = Time.parse(updated).strftime("%m-%d %H:%M")
+
+		%(> - [#{time}] _#{who}_ 님이 작성: ```#{message}```)
 	end
 end

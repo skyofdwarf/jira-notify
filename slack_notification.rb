@@ -118,7 +118,7 @@ class SlackNotification
     end
 
     title = "쿵쾅(WQ)! 신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}"
-    header = ":ladybug: *신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}*"
+    header = "<#{URL.filter(filter_id)}|:ladybug:> *신규? #{new_issue_messages.count}, 갱신 #{updated_issue_messages.count}*"
     
     blocks.prepend(section_for_text(header))
 
@@ -240,7 +240,7 @@ class SlackNotification
 		changed = change[:changed]
     created = change[:created]
 
-    time = Time.parse(created).strftime("%m-%d %H:%M")
+    time = Time.parse(created).strftime("%m-%d %H:%M:%S")
 
 		changed.map {|item|
 			what = item[:what]
@@ -263,7 +263,11 @@ class SlackNotification
         if added
           message += "`#{to}`"
         elsif deleted
-          message += "~#{from}~"
+          if from.include?("\n") 
+            message += "```#{from}```"
+          else
+            message += "~#{from}~"
+          end
         else
           message += "~#{from}~ -> `#{to}`"
         end
@@ -277,7 +281,7 @@ class SlackNotification
     updated = comment[:updated]
     created = comment[:created]
 
-    time = Time.parse(updated).strftime("%m-%d %H:%M")
+    time = Time.parse(updated).strftime("%m-%d %H:%M:%S")
     wrote = updated ? "작성": "편집"
 
 		%(> - [#{time}] _#{who}_ 님이 _#{wrote}_: ```#{message}```)

@@ -282,7 +282,7 @@ class SlackNotification
     created = comment[:created]
 
     time = Time.parse(updated).strftime("%m-%d %H:%M:%S")
-    wrote = updated ? "작성": "편집"
+    wrote = (created == updated) ? "작성": "편집"
 
 		%(> - [#{time}] _#{who}_ 님이 _#{wrote}_: ```#{message}```)
 	end

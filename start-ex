@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+path="$( cd "$( dirname "$0" )" && pwd )"
+
+# filter id
+filter_id="234234"
+
+polling_period=$1
+
+$path/jira.sh start $filter_id $polling_period
